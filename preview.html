@@ -12,12 +12,19 @@
 
 <div class="topbar">
   <div class="topbar-left">
-    <div class="back-btn" onclick="window.location.href='index.html'"><i class="ti ti-arrow-left"></i> Back to wizard</div>
+    <div class="back-btn" onclick="window.location.href='index.html'"><i class="ti ti-arrow-left"></i></div>
     <span class="topbar-title">Installation Summary</span>
   </div>
   <div class="topbar-right">
-    <button class="btn" onclick="window.location.href='index.html'"><i class="ti ti-edit"></i> Edit</button>
-    <button class="btn btn-primary" onclick="window.location.href='pdf-report.html?type=full'"><i class="ti ti-file-type-pdf"></i> Generate PDF</button>
+    <div class="dropdown-wrap">
+      <div class="dropdown-btn" onclick="toggleDropdown()" aria-label="More options">
+        <i class="ti ti-dots-vertical"></i>
+      </div>
+      <div class="dropdown-menu" id="dropdown-menu">
+        <div class="dropdown-item" onclick="window.location.href='index.html'"><i class="ti ti-edit"></i> Edit</div>
+        <div class="dropdown-item" onclick="window.location.href='pdf-report.html?type=full'"><i class="ti ti-file-type-pdf"></i> Generate PDF</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -45,7 +52,6 @@
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
     <button class="btn btn-primary" onclick="window.location.href='pdf-report.html?type=full'"><i class="ti ti-file-type-pdf"></i> Generate PDF report</button>
     <button class="btn" onclick="window.location.href='pdf-report.html?type=handover'"><i class="ti ti-certificate"></i> Handover certificate</button>
-    <button class="btn" onclick="window.location.href='index.html'"><i class="ti ti-edit"></i> Back to wizard</button>
   </div>
 </div>
 
@@ -306,6 +312,22 @@ function renderAll() {
       </div>`;
   }).join('');
 }
+
+/* ── Dropdown menu ───────────────────────────────────────── */
+function toggleDropdown() {
+  document.getElementById('dropdown-menu').classList.toggle('open');
+}
+
+function closeDropdown() {
+  document.getElementById('dropdown-menu').classList.remove('open');
+}
+
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    closeDropdown();
+  }
+});
 
 renderAll();
 </script>
