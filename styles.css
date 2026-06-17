@@ -285,38 +285,6 @@ a {
   margin-left: 52px;
 }
 
-.validation-banner {
-  background: #fff8ee;
-  border: 1px solid #f0c060;
-  border-radius: 9px;
-  padding: 10px 14px;
-  margin-bottom: 18px;
-  font-size: 12px;
-  color: #7a4e00;
-  display: none;
-}
-
-.validation-banner.show {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.validation-banner i {
-  font-size: 16px;
-  margin-top: 1px;
-  flex-shrink: 0;
-}
-
-.validation-banner ul {
-  margin: 4px 0 0 4px;
-  padding-left: 14px;
-}
-
-.validation-banner li {
-  margin-bottom: 2px;
-}
-
 /* ── Panel ── */
 .panel {
   display: none;

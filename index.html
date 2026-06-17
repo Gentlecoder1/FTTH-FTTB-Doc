@@ -51,10 +51,6 @@
 
 <!-- ══ MAIN ══════════════════════════════════════════════════ -->
 <main class="main">
-  <div class="validation-banner" id="val-banner">
-    <i class="ti ti-alert-triangle"></i>
-    <div><strong>Required fields missing:</strong><ul id="val-list"></ul></div>
-  </div>
 
   <!-- ─ STEP 0: CUSTOMER ─────────────────────────────────── -->
   <div class="panel active" id="panel-0">
@@ -528,15 +524,40 @@ function buildPhotoSlots(photos, containerId, badge) {
 /* ── Navigation ─────────────────────────────────────────── */
 function navigate(dir) {
   if (dir > 0) {
-    const missing = WizardState.getMissingFields(cur);
+    const missing = getMissingKeys(cur);
     if (missing.length > 0) {
-      showValidation(missing);
+      highlightFields(missing);
       return;
     }
-    hideValidation();
+    clearHighlights();
   }
   syncFormToState();
   showPanel(Math.min(Math.max(cur + dir, 0), TOTAL - 1));
+}
+
+function getMissingKeys(stepIndex) {
+  return Object.entries(FIELDS)
+    .filter(([, f]) => f.step === stepIndex && f.required)
+    .filter(([k]) => {
+      const v = WizardState.get(k);
+      return !v || String(v).trim() === '';
+    })
+    .map(([k]) => k);
+}
+
+function highlightFields(keys) {
+  clearHighlights();
+  keys.forEach(k => {
+    const el = document.querySelector(`[data-field="${k}"]`);
+    if (el) el.classList.add('invalid');
+  });
+  const first = document.querySelector(`[data-field="${keys[0]}"]`);
+  if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function clearHighlights() {
+  document.querySelectorAll('.field input.invalid, .field select.invalid, .field textarea.invalid')
+    .forEach(el => el.classList.remove('invalid'));
 }
 
 function showPanel(i) {
@@ -552,7 +573,7 @@ function showPanel(i) {
   document.getElementById('btn-prev').style.visibility = cur === 0 ? 'hidden' : 'visible';
   document.getElementById('btn-next').style.display = cur === TOTAL - 1 ? 'none' : 'inline-flex';
   document.getElementById('step-ctr').textContent = `Step ${cur + 1} of ${TOTAL}`;
-  hideValidation();
+  clearHighlights();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -628,16 +649,6 @@ function clearSig(who) {
   const sp = document.getElementById('sp-' + who);
   if (sp) sp.style.opacity = '1';
 }
-
-/* ── Validation banner ──────────────────────────────────── */
-function showValidation(fields) {
-  const banner = document.getElementById('val-banner');
-  const list = document.getElementById('val-list');
-  list.innerHTML = fields.map(f => `<li>${f}</li>`).join('');
-  banner.classList.add('show');
-  banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-function hideValidation() { document.getElementById('val-banner').classList.remove('show'); }
 
 /* ── File upload ──────────────────────────────────────────── */
 function handleFileUpload(input, key) {
