@@ -21,7 +21,8 @@ a { color: inherit; text-decoration: none; }
 
 /* ── Layout ── */
 .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
-.sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 20px 0; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 20px 0; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+#nav-steps { flex: 1; min-height: 0; overflow-y: auto; }
 .main { padding: 24px 28px 60px; max-width: 820px; }
 
 /* ── Sidebar ── */
@@ -177,16 +178,93 @@ input[type="file"].photo-input { display: none; }
 @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
 /* ── Responsive ── */
+/* ── Mobile header ── */
+.mobile-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  flex-shrink: 0;
+}
+.mobile-header-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.mobile-header-right { display: flex; align-items: center; gap: 10px; }
+.mobile-pct-badge { font-size: 11px; font-weight: 600; color: var(--green-dark); background: var(--green-light); padding: 3px 10px; border-radius: 20px; }
+.hamburger { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .12s; }
+.hamburger:hover { background: var(--green-light); }
+.hamburger i { font-size: 20px; color: var(--text); }
+
+/* ── Sidebar backdrop ── */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
 @media (max-width: 700px) {
+  .mobile-header { display: flex; }
   .app { grid-template-columns: 1fr; }
-  .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 14px 0; }
-  .main { padding: 16px 14px 60px; }
-  .nav-step { padding: 7px 14px; }
-  .brand { padding: 0 14px 14px; }
+
+  /* Sidebar becomes a fixed off-screen drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    z-index: 1001;
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+  }
+
+  /* Slide in when open */
+  body.sidebar-open .sidebar {
+    left: 0;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+  }
+
+  /* Lock background scroll when open */
+  body.sidebar-open { overflow: hidden; }
+
+  /* Show backdrop when open */
+  body.sidebar-open .sidebar-backdrop { display: block; }
+
+  .main { padding: 16px 14px 80px; }
+  .nav-step { padding: 10px 16px; min-height: 44px; }
+  .brand { padding: 0 16px 14px; }
+
+  /* Bottom nav sticks above phone bottom bar */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; border-radius: 0; border-left: none; border-right: none; border-bottom: none; z-index: 100; }
 }
 </style>
 </head>
 <body>
+
+<!-- ══ MOBILE HEADER ════════════════════════════════════════ -->
+<header class="mobile-header" id="mobile-header">
+  <div class="hamburger" onclick="toggleSidebar()" aria-label="Open navigation">
+    <i class="ti ti-menu-2" id="hamburger-icon"></i>
+  </div>
+  <span class="mobile-header-title">FTTH/FTTB Wizard</span>
+  <div class="mobile-header-right">
+    <span class="mobile-pct-badge" id="mobile-overall-pct">0%</span>
+  </div>
+</header>
+
+<!-- ══ SIDEBAR BACKDROP ══════════════════════════════════════ -->
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
+
 <div class="app">
 
 <!-- ══ SIDEBAR ══════════════════════════════════════════════ -->
@@ -743,6 +821,9 @@ function updateProgress() {
   const overall = WizardState.getOverallCompletion();
   document.getElementById('overall-pct').textContent = overall + '%';
   document.getElementById('overall-fill').style.width = overall + '%';
+  // Sync mobile header completion badge
+  const mob = document.getElementById('mobile-overall-pct');
+  if (mob) mob.textContent = overall + '%';
 }
 
 /* ── Toggle handlers ────────────────────────────────────── */
@@ -832,8 +913,24 @@ function confirmClear() {
   if (confirm('Clear all form data? This cannot be undone.')) { WizardState.clear(); location.reload(); }
 }
 
+/* ── Sidebar toggle (mobile) ──────────────────────────────── */
+function toggleSidebar() {
+  const isOpen = document.body.classList.toggle('sidebar-open');
+  document.getElementById('hamburger-icon').className = isOpen ? 'ti ti-x' : 'ti ti-menu-2';
+}
+function closeSidebar() {
+  document.body.classList.remove('sidebar-open');
+  document.getElementById('hamburger-icon').className = 'ti ti-menu-2';
+}
+
+
+
 /* ── Init ────────────────────────────────────────────────── */
 buildNav();
+// Close sidebar when a nav step is tapped on mobile
+document.querySelectorAll('.nav-step').forEach(el => {
+  el.addEventListener('click', () => { if (window.innerWidth <= 700) closeSidebar(); });
+});
 buildPhotoSlots(MANDATORY_PHOTOS, 'mandatory-photos', 'mandatory');
 buildPhotoSlots(OPTIONAL_PHOTOS, 'optional-photos', 'optional');
 populateFormFromState();
