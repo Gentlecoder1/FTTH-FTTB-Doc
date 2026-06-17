@@ -13,20 +13,33 @@
 <!-- ── Top bar ─────────────────────────────────────────────── -->
 <div class="topbar">
   <div class="topbar-left">
-    <div class="back-btn" onclick="window.location.href='index.html'"><i class="ti ti-arrow-left"></i> Wizard</div>
-    <div class="back-btn" onclick="window.location.href='preview.html'"><i class="ti ti-eye"></i> Preview</div>
+    <div class="hamburger" onclick="toggleControls()" aria-label="Open controls">
+      <i class="ti ti-menu-2" id="ctrl-hamburger-icon"></i>
+    </div>
     <span class="topbar-title">Generate Report</span>
   </div>
-  <div class="type-tabs">
-    <div class="tab active" data-type="full" onclick="switchType('full')">Full Report</div>
-    <div class="tab" data-type="handover" onclick="switchType('handover')">Handover Certificate</div>
-    <div class="tab" data-type="isp" onclick="switchType('isp')">ISP Record</div>
-    <div class="tab" data-type="maintenance" onclick="switchType('maintenance')">Maintenance Card</div>
-  </div>
   <div class="topbar-right">
-    <button class="btn btn-primary" onclick="window.print()"><i class="ti ti-printer"></i> Print / Save PDF</button>
+    <div class="dropdown-wrap">
+      <div class="dropdown-btn" onclick="toggleDropdown()" aria-label="More options">
+        <i class="ti ti-dots-vertical"></i>
+      </div>
+      <div class="dropdown-menu" id="dropdown-menu">
+        <div class="dropdown-item" onclick="window.location.href='index.html'"><i class="ti ti-arrow-left"></i> Wizard</div>
+        <div class="dropdown-item" onclick="window.location.href='preview.html'"><i class="ti ti-eye"></i> Preview</div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item dropdown-item-tab active" data-type="full" onclick="switchType('full'); closeDropdown()">Full Report</div>
+        <div class="dropdown-item dropdown-item-tab" data-type="handover" onclick="switchType('handover'); closeDropdown()">Handover Certificate</div>
+        <div class="dropdown-item dropdown-item-tab" data-type="isp" onclick="switchType('isp'); closeDropdown()">ISP Record</div>
+        <div class="dropdown-item dropdown-item-tab" data-type="maintenance" onclick="switchType('maintenance'); closeDropdown()">Maintenance Card</div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item" onclick="window.print()"><i class="ti ti-printer"></i> Print / Save PDF</div>
+      </div>
+    </div>
   </div>
 </div>
+</div>
+
+<div class="controls-backdrop" id="controls-backdrop" onclick="closeControls()"></div>
 
 <div class="shell">
 
@@ -575,7 +588,7 @@ function rebuildReport() {
 
 function switchType(type, rebuild=true) {
   currentType = type;
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.type === type));
+  document.querySelectorAll('.dropdown-item-tab').forEach(t => t.classList.toggle('active', t.dataset.type === type));
   activeSections = [...SECTION_TOGGLES[type]];
   buildSectionChecks();
   if (rebuild) rebuildReport();
@@ -626,6 +639,33 @@ function updateCompleteness() {
     block.style.display = 'none';
   }
 }
+
+/* ── Mobile controls drawer ──────────────────────────────── */
+function toggleControls() {
+  const isOpen = document.body.classList.toggle('controls-open');
+  document.getElementById('ctrl-hamburger-icon').className = isOpen ? 'ti ti-x' : 'ti ti-menu-2';
+}
+
+function closeControls() {
+  document.body.classList.remove('controls-open');
+  document.getElementById('ctrl-hamburger-icon').className = 'ti ti-menu-2';
+}
+
+/* ── Dropdown menu ───────────────────────────────────────── */
+function toggleDropdown() {
+  document.getElementById('dropdown-menu').classList.toggle('open');
+}
+
+function closeDropdown() {
+  document.getElementById('dropdown-menu').classList.remove('open');
+}
+
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    closeDropdown();
+  }
+});
 
 /* ── Init ────────────────────────────────────────────────── */
 buildSectionChecks();
