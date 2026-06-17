@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Installation Summary Preview · FTTH Wizard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #1d9e75; --green-dark: #0f6e56; --green-light: #e1f5ee; --green-mid: #5dcaa5;
+  --red: #e24b4a; --amber: #ba7517;
+  --bg: #f0f4f2; --surface: #fff; --border: #dce8e0; --border-soft: #edf4f0;
+  --text: #1a1e1b; --muted: #6b7a73; --hint: #9eaaa4;
+  --radius: 10px; --radius-lg: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.back-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); transition: all .12s; }
+.back-btn:hover { background: var(--green-light); color: var(--green-dark); }
+.topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.topbar-right { display: flex; gap: 8px; }
+.btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .15s; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'Inter', sans-serif; }
+.btn-primary { background: var(--green); color: white; border-color: var(--green); }
+.btn-primary:hover { background: var(--green-dark); }
+.btn:hover { background: #f0f4f2; }
+
+.wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
+
+/* Completion banner */
+.completion-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 22px; margin-bottom: 22px; display: flex; align-items: center; gap: 18px; }
+.completion-ring { width: 64px; height: 64px; position: relative; flex-shrink: 0; }
+.completion-ring svg { transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: var(--border); stroke-width: 6; }
+.ring-fill { fill: none; stroke: var(--green); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
+.ring-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 14px; font-weight: 600; color: var(--green-dark); }
+.completion-details h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.completion-details p { font-size: 12px; color: var(--muted); }
+.step-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.s-pill { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; border: 1px solid transparent; }
+.s-pill.complete { background: var(--green-light); color: var(--green-dark); border-color: var(--green-mid); }
+.s-pill.partial { background: #faeeda; color: #6b3b00; border-color: #f0c060; }
+.s-pill.empty { background: #f0f3f0; color: var(--hint); border-color: var(--border); }
+
+/* Section cards */
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 16px; overflow: hidden; }
+.section-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border-soft); cursor: pointer; }
+.section-header-left { display: flex; align-items: center; gap: 10px; }
+.section-icon { width: 32px; height: 32px; background: var(--green-light); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.section-icon i { font-size: 17px; color: var(--green-dark); }
+.section-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.section-status { font-size: 11px; padding: 2px 10px; border-radius: 20px; font-weight: 600; }
+.status-complete { background: var(--green-light); color: var(--green-dark); }
+.status-partial { background: #faeeda; color: #6b3b00; }
+.status-empty { background: #f0f3f0; color: var(--hint); }
+.section-body { padding: 16px 18px; }
+.data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.data-full { grid-column: 1 / -1; }
+.data-field { display: flex; flex-direction: column; gap: 3px; }
+.data-label { font-size: 10px; font-weight: 600; color: var(--hint); text-transform: uppercase; letter-spacing: .05em; }
+.data-value { font-size: 13px; color: var(--text); font-weight: 500; }
+.data-value.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.data-value.empty { color: var(--hint); font-style: italic; font-weight: 400; }
+.divider { height: 1px; background: var(--border-soft); margin: 14px 0; }
+.sub-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+
+/* Loss table */
+.loss-preview { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 4px; }
+.loss-preview th { background: #f8fbf9; padding: 6px 10px; text-align: left; font-weight: 600; color: var(--muted); border: 1px solid var(--border); }
+.loss-preview td { padding: 6px 10px; border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; }
+.pass { color: var(--green-dark); font-weight: 600; }
+.fail { color: var(--red); font-weight: 600; }
+
+/* Asset table */
+.asset-preview { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 4px; }
+.asset-preview th { background: #f8fbf9; padding: 6px 10px; text-align: left; font-weight: 600; color: var(--muted); border: 1px solid var(--border); }
+.asset-preview td { padding: 6px 10px; border: 1px solid var(--border); }
+.asset-preview td:nth-child(2) { font-family: 'JetBrains Mono', monospace; text-align: center; font-weight: 600; color: var(--green-dark); }
+
+/* Toggle badges */
+.tog-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 600; }
+.tog-badge.on { background: var(--green-light); color: var(--green-dark); }
+.tog-badge.off { background: #f0f3f0; color: var(--hint); }
+
+/* Missing fields warning */
+.missing-block { background: #fff8ee; border: 1px solid #f0c060; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; color: #7a4e00; display: none; }
+.missing-block.show { display: block; }
+
+@keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="back-btn" onclick="window.location.href='index.html'"><i class="ti ti-arrow-left"></i> Back to wizard</div>
+    <span class="topbar-title">Installation Summary</span>
+  </div>
+  <div class="topbar-right">
+    <button class="btn" onclick="window.location.href='index.html'"><i class="ti ti-edit"></i> Edit</button>
+    <button class="btn btn-primary" onclick="window.location.href='pdf-report.html?type=full'"><i class="ti ti-file-type-pdf"></i> Generate PDF</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- Completion ring -->
+  <div class="completion-bar">
+    <div class="completion-ring">
+      <svg viewBox="0 0 64 64" width="64" height="64">
+        <circle class="ring-bg" cx="32" cy="32" r="28"/>
+        <circle class="ring-fill" id="ring-fill" cx="32" cy="32" r="28" stroke-dasharray="175.9" stroke-dashoffset="175.9"/>
+      </svg>
+      <div class="ring-text" id="ring-text">0%</div>
+    </div>
+    <div class="completion-details">
+      <h2 id="completion-heading">Form completion</h2>
+      <p id="completion-sub">Fill in required fields to generate the full installation report.</p>
+      <div class="step-pills" id="step-pills"></div>
+    </div>
+  </div>
+
+  <!-- Sections rendered by JS -->
+  <div id="sections"></div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+    <button class="btn btn-primary" onclick="window.location.href='pdf-report.html?type=full'"><i class="ti ti-file-type-pdf"></i> Generate PDF report</button>
+    <button class="btn" onclick="window.location.href='pdf-report.html?type=handover'"><i class="ti ti-certificate"></i> Handover certificate</button>
+    <button class="btn" onclick="window.location.href='index.html'"><i class="ti ti-edit"></i> Back to wizard</button>
+  </div>
+</div>
+
+<script src="wizard-core.js"></script>
+<script>
+WizardState.load();
+
+/* ── Render ────────────────────────────────────────────────── */
+function d(key, mono) {
+  const v = WizardState.get(key);
+  const empty = !v || String(v).trim() === '';
+  return `<div class="data-field">
+    <span class="data-label">${FIELDS[key] ? FIELDS[key].label : key}</span>
+    <span class="data-value ${empty ? 'empty' : (mono ? 'mono' : '')}">${empty ? '— not entered —' : v}</span>
+  </div>`;
+}
+function dCustom(label, value, mono) {
+  const empty = !value || String(value).trim() === '' || value === '—';
+  return `<div class="data-field">
+    <span class="data-label">${label}</span>
+    <span class="data-value ${empty ? 'empty' : (mono ? 'mono' : '')}">${empty ? '— not entered —' : value}</span>
+  </div>`;
+}
+function togBadge(key) {
+  const v = WizardState.get(key);
+  const on = v === true || v === 'true';
+  return `<span class="tog-badge ${on ? 'on' : 'off'}"><i class="ti ${on ? 'ti-check' : 'ti-x'}" style="font-size:11px;"></i> ${on ? 'Yes' : 'No'}</span>`;
+}
+function passTag(key) {
+  const v = WizardState.get(key);
+  if (!v) return '<span style="color:var(--hint);">—</span>';
+  return `<span class="${v === 'Fail' ? 'fail' : 'pass'}">${v}</span>`;
+}
+
+const SECTIONS = [
+  {
+    id: 's0', icon: 'ti-building', title: 'Customer Information', step: 0,
+    render: () => `
+      <div class="data-grid">
+        ${d('customer_name')} ${d('customer_type')} ${d('building_type')}
+        <div class="data-full">${d('address')}</div>
+        ${d('landmark')} ${d('phone')} ${d('alt_phone')} ${d('email')}
+        ${d('ticket_number', true)} ${dCustom('Installation date', formatDate(WizardState.get('install_date')))}
+        ${d('technician')} ${d('gps_coords', true)}
+      </div>`
+  },
+  {
+    id: 's1', icon: 'ti-world', title: 'Service Information', step: 1,
+    render: () => `
+      <div class="data-grid">
+        ${d('service_plan')} ${d('service_status')} ${d('cir')} ${d('burst_rate')}
+        ${d('contract_duration')} ${dCustom('Monthly fee', WizardState.get('monthly_fee') ? '₦' + Number(WizardState.get('monthly_fee')).toLocaleString() : '')}
+        ${d('vlan_id', true)} ${d('ip_type')} ${d('ip_address', true)} ${d('subnet', true)}
+      </div>
+      <div class="divider"></div>
+      <div class="sub-title">Enterprise routing</div>
+      <div class="data-grid">
+        ${d('bgp_asn', true)} ${d('public_subnet', true)} ${d('vrf_name', true)} ${d('nat_type')}
+      </div>`
+  },
+  {
+    id: 's2', icon: 'ti-timeline', title: 'ODN Information', step: 2,
+    render: () => `
+      <div class="data-grid">
+        ${d('olt_name', true)} ${d('olt_ip', true)} ${d('olt_port', true)} ${d('pon_tech')}
+        ${d('splitter_ratio')} ${d('splitter_location', true)} ${d('fat_id', true)}
+        ${d('fiber_core_num', true)} ${d('fiber_core_status')} ${d('feeder_cable')} ${d('dist_cable')}
+        ${d('ont_serial_odn', true)}
+        ${dCustom('Route map', WizardState.get('route_map_name') || '')}
+      </div>`
+  },
+  {
+    id: 's3', icon: 'ti-antenna', title: 'Optical Measurements', step: 3,
+    render: () => `
+      <div class="data-grid">
+        ${dCustom('OLT Tx power', WizardState.get('olt_tx_power') ? WizardState.get('olt_tx_power') + ' dBm' : '', true)}
+        ${dCustom('OLT port power (pre)', WizardState.get('olt_pre_power') ? WizardState.get('olt_pre_power') + ' dBm' : '', true)}
+        ${dCustom('ONT Rx power (pre)', WizardState.get('ont_rx_pre') ? WizardState.get('ont_rx_pre') + ' dBm' : '', true)}
+        ${dCustom('OLT port power (post)', WizardState.get('olt_post_power') ? WizardState.get('olt_post_power') + ' dBm' : '', true)}
+        ${dCustom('ONT Rx power (post)', WizardState.get('ont_rx_post') ? WizardState.get('ont_rx_post') + ' dBm' : '', true)}
+        ${dCustom('Power margin', WizardState.get('power_margin') ? WizardState.get('power_margin') + ' dB' : '', true)}
+      </div>
+      <div class="divider"></div>
+      <div class="sub-title">Segment loss</div>
+      <table class="loss-preview">
+        <thead><tr><th>Segment</th><th>Loss (dB)</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>OLT → Feeder splitter</td><td>${WizardState.get('loss_olt_splitter') || '—'}</td><td>${passTag('pass_olt_splitter')}</td></tr>
+          <tr><td>Feeder splitter → FAT</td><td>${WizardState.get('loss_splitter_fat') || '—'}</td><td>${passTag('pass_splitter_fat')}</td></tr>
+          <tr><td>FAT → ONT</td><td>${WizardState.get('loss_fat_ont') || '—'}</td><td>${passTag('pass_fat_ont')}</td></tr>
+          <tr style="background:#f0f9f5;font-weight:600;"><td>Total end-to-end</td><td style="color:var(--green-dark);">${WizardState.get('loss_total') || '—'}</td><td>—</td></tr>
+        </tbody>
+      </table>`
+  },
+  {
+    id: 's4', icon: 'ti-router', title: 'ONT / Router Information', step: 4,
+    render: () => `
+      <div class="data-grid">
+        ${d('ont_model')} ${d('ont_serial', true)} ${d('ont_asset', true)} ${d('device_ownership')}
+        ${d('router_model')} ${d('router_asset', true)} ${d('wifi_band')} ${d('wifi_ssid', true)}
+        ${d('lan_ports_used', true)} ${d('ont_firmware', true)} ${d('ups_model')} ${d('ups_asset', true)}
+        ${d('mgmt_ip', true)} ${d('tr069')}
+      </div>`
+  },
+  {
+    id: 's5', icon: 'ti-tool', title: 'Physical Installation', step: 5,
+    render: () => `
+      <div class="data-grid">
+        ${d('pole_id', true)} ${d('pole_gps', true)} ${d('pole_condition')}
+        ${d('drop_cable_type')} ${dCustom('Drop cable length', WizardState.get('drop_cable_length') ? WizardState.get('drop_cable_length') + ' m' : '', true)}
+        <div class="data-full">${d('drop_cable_route')}</div>
+        ${d('fiber_protection')} ${d('earthing_status')}
+      </div>
+      <div class="divider"></div>
+      <div class="sub-title">Equipment</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">
+        <div class="data-field"><span class="data-label">UPS installed</span>${togBadge('ups_installed')}</div>
+        <div class="data-field"><span class="data-label">Surge protector</span>${togBadge('surge_installed')}</div>
+        <div class="data-field"><span class="data-label">Outdoor enclosure</span>${togBadge('enclosure_installed')}</div>
+      </div>`
+  },
+  {
+    id: 's6', icon: 'ti-flask', title: 'Testing & Verification', step: 6,
+    render: () => `
+      <div class="data-grid">
+        ${d('speed_server')} ${dCustom('Test time', formatDateTime(WizardState.get('test_timestamp')))}
+        ${dCustom('Download', WizardState.get('download_speed') ? WizardState.get('download_speed') + ' Mbps' : '', true)}
+        ${dCustom('Upload', WizardState.get('upload_speed') ? WizardState.get('upload_speed') + ' Mbps' : '', true)}
+        ${dCustom('Ping', WizardState.get('ping_ms') ? WizardState.get('ping_ms') + ' ms' : '', true)}
+        ${dCustom('Jitter', WizardState.get('jitter_ms') ? WizardState.get('jitter_ms') + ' ms' : '', true)}
+        ${dCustom('Packet loss', WizardState.get('packet_loss') ? WizardState.get('packet_loss') + '%' : '', true)}
+        ${dCustom('MOS score', WizardState.get('mos_score') || '', true)}
+      </div>
+      <div class="divider"></div>
+      <div class="sub-title">Fault recovery</div>
+      <div class="data-grid">
+        ${d('nearest_fat', true)} ${d('nearest_handhole', true)} ${d('alt_core')} ${d('spare_olt_port')} ${d('escalation_engineer')}
+        <div class="data-full">${d('test_notes')}</div>
+      </div>`
+  },
+  {
+    id: 's7', icon: 'ti-camera', title: 'Photo Documentation', step: 7,
+    render: () => {
+      const SLOTS = [
+        { key: 'photo_building', label: 'Building front', req: true },
+        { key: 'photo_street', label: 'Street view', req: true },
+        { key: 'photo_pole', label: 'Pole view', req: true },
+        { key: 'photo_fat', label: 'FAT view', req: true },
+        { key: 'photo_route', label: 'Drop cable route', req: true },
+        { key: 'photo_ont', label: 'ONT installation', req: true },
+        { key: 'photo_signal', label: 'Signal reading', req: true },
+        { key: 'photo_speedtest', label: 'Speed test', req: true },
+        { key: 'photo_rack', label: 'Equipment rack', req: false },
+        { key: 'photo_router_cfg', label: 'Router config', req: false },
+      ];
+      return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">
+        ${SLOTS.map(s => {
+          const name = WizardState.get(s.key + '_name');
+          const captured = !!name;
+          return `<div style="border:1px solid ${captured ? 'var(--green-mid)' : 'var(--border)'};border-radius:9px;padding:10px;background:${captured ? '#f0f9f5' : '#f8fbf9'};text-align:center;">
+            <i class="ti ${captured ? 'ti-check' : (s.req ? 'ti-alert-circle' : 'ti-camera')}" style="font-size:18px;color:${captured ? 'var(--green)' : (s.req ? 'var(--amber)' : 'var(--hint)')};"></i>
+            <div style="font-size:11px;color:var(--text);margin-top:4px;font-weight:${captured ? '500' : '400'};">${s.label}</div>
+            <div style="font-size:10px;color:${captured ? 'var(--green-dark)' : (s.req ? '#7a4e00' : 'var(--hint)')};margin-top:2px;">${captured ? '✓ Captured' : (s.req ? 'Required' : 'Optional')}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
+  },
+  {
+    id: 's8', icon: 'ti-package', title: 'Asset Tracking', step: 8,
+    render: () => {
+      const items = [
+        { key: 'drop_cable', label: 'Drop cable', unit: 'm' },
+        { key: 'patch_cord', label: 'Patch cord', unit: 'pcs' },
+        { key: 'fast_conn', label: 'Fast connector', unit: 'pcs' },
+        { key: 'splitter', label: 'Splitter', unit: 'pcs' },
+        { key: 'cable_ties', label: 'Cable ties', unit: 'pcs' },
+        { key: 'clamps', label: 'Clamps', unit: 'pcs' },
+        { key: 'conduit', label: 'Conduit', unit: 'm' },
+        { key: 'rawbolt', label: 'Wall plug/rawbolt', unit: 'pcs' },
+      ].filter(i => WizardState.get('qty_' + i.key) && WizardState.get('qty_' + i.key) !== '0');
+      const matTable = items.length > 0 ? `
+        <table class="asset-preview">
+          <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Inventory ID</th></tr></thead>
+          <tbody>${items.map(i => `<tr><td>${i.label}</td><td>${WizardState.get('qty_' + i.key)}</td><td>${i.unit}</td><td style="font-family:monospace;font-size:11px;">${WizardState.get('inv_' + i.key) || '—'}</td></tr>`).join('')}</tbody>
+        </table>` : '<p style="font-size:12px;color:var(--hint);">No materials entered yet.</p>';
+      return `${matTable}
+        <div class="divider"></div>
+        <div class="data-grid">
+          ${dCustom('ONT asset ID', WizardState.get('ont_asset_track'), true)}
+          ${dCustom('Router asset ID', WizardState.get('router_asset_track'), true)}
+          ${dCustom('UPS asset ID', WizardState.get('ups_asset_track'), true)}
+          <div class="data-full">${dCustom('Notes', WizardState.get('asset_notes'))}</div>
+        </div>`;
+    }
+  },
+  {
+    id: 's9', icon: 'ti-pencil', title: 'Customer Acceptance', step: 9,
+    render: () => `
+      <div class="data-grid">
+        ${d('accept_customer_name')} ${d('accept_designation')}
+        ${dCustom('Acceptance time', formatDateTime(WizardState.get('accept_datetime')))}
+        <div class="data-full">${d('customer_comments')}</div>
+        <div class="data-full">${d('handover_notes')}</div>
+        ${d('engineer_name')} ${d('engineer_id', true)}
+      </div>
+      <div class="divider"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div class="sub-title" style="margin-bottom:6px;">Customer signature</div>
+          ${WizardState.get('sig_cust') ? `<img src="${WizardState.get('sig_cust')}" style="border:1px solid var(--border);border-radius:8px;width:100%;height:80px;object-fit:contain;background:#f8fbf9;">` : '<div style="border:1px solid var(--border);border-radius:8px;height:80px;background:#f8fbf9;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--hint);">Not yet signed</div>'}
+        </div>
+        <div>
+          <div class="sub-title" style="margin-bottom:6px;">Engineer signature</div>
+          ${WizardState.get('sig_eng') ? `<img src="${WizardState.get('sig_eng')}" style="border:1px solid var(--border);border-radius:8px;width:100%;height:80px;object-fit:contain;background:#f8fbf9;">` : '<div style="border:1px solid var(--border);border-radius:8px;height:80px;background:#f8fbf9;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--hint);">Not yet signed</div>'}
+        </div>
+      </div>`
+  }
+];
+
+function getStepStatus(i) {
+  const pct = WizardState.getStepCompletion(i);
+  if (pct >= 1) return 'complete';
+  if (pct > 0) return 'partial';
+  return 'empty';
+}
+
+function renderAll() {
+  const overall = WizardState.getOverallCompletion();
+  const circ = 175.9;
+  const offset = circ - (circ * overall / 100);
+  document.getElementById('ring-fill').style.strokeDashoffset = offset;
+  document.getElementById('ring-text').textContent = overall + '%';
+  document.getElementById('completion-heading').textContent = overall >= 100 ? 'Ready to generate report' : overall >= 50 ? 'Good progress — keep going' : 'Form in progress';
+  document.getElementById('completion-sub').textContent = overall >= 100 ? 'All required fields are complete. Generate your PDF report now.' : `${overall}% of required fields filled. Complete remaining steps before generating.`;
+
+  const pills = document.getElementById('step-pills');
+  pills.innerHTML = STEP_META.slice(0, 10).map((s, i) => {
+    const status = getStepStatus(i);
+    return `<span class="s-pill ${status}" onclick="window.location.href='index.html'" title="Click to edit ${s.name}">${status === 'complete' ? '✓' : ''} ${s.name}</span>`;
+  }).join('');
+
+  const container = document.getElementById('sections');
+  container.innerHTML = SECTIONS.map(s => {
+    const status = getStepStatus(s.step);
+    const statusLabel = status === 'complete' ? 'Complete' : status === 'partial' ? 'Partial' : 'Not started';
+    const statusCls = 'status-' + status;
+    return `
+      <div class="section">
+        <div class="section-header">
+          <div class="section-header-left">
+            <div class="section-icon"><i class="ti ${s.icon}"></i></div>
+            <span class="section-title">${s.title}</span>
+          </div>
+          <span class="section-status ${statusCls}">${statusLabel}</span>
+        </div>
+        <div class="section-body">${s.render()}</div>
+      </div>`;
+  }).join('');
+}
+
+renderAll();
+</script>
+</body>
+</html>

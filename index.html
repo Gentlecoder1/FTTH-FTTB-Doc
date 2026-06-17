@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FTTH Installation Wizard · Nigerian ISP Standard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #1d9e75; --green-dark: #0f6e56; --green-light: #e1f5ee; --green-mid: #5dcaa5;
+  --red: #e24b4a; --amber: #ba7517; --blue: #185fa5;
+  --bg: #f0f4f2; --surface: #ffffff; --border: #dce8e0; --border-soft: #edf4f0;
+  --text: #1a1e1b; --muted: #6b7a73; --hint: #9eaaa4;
+  --radius: 10px; --radius-lg: 14px; --shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+
+/* ── Layout ── */
+.app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 20px 0; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.main { padding: 24px 28px 60px; max-width: 820px; }
+
+/* ── Sidebar ── */
+.brand { padding: 0 18px 18px; border-bottom: 1px solid var(--border-soft); margin-bottom: 12px; }
+.brand-logo { width: 36px; height: 36px; background: var(--green-light); border-radius: 9px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+.brand-logo i { font-size: 20px; color: var(--green-dark); }
+.brand h1 { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.brand p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.nav-step { display: flex; align-items: center; gap: 10px; padding: 9px 18px; cursor: pointer; transition: background .12s; position: relative; }
+.nav-step:hover { background: var(--green-light); }
+.nav-step.active { background: var(--green-light); }
+.nav-step.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--green); border-radius: 0 2px 2px 0; }
+.step-num { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--border); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; color: var(--muted); flex-shrink: 0; background: var(--surface); transition: all .15s; }
+.nav-step.active .step-num { border-color: var(--green); background: var(--green); color: white; }
+.nav-step.done .step-num { border-color: var(--green-mid); background: var(--green-light); color: var(--green-dark); }
+.nav-step.partial .step-num { border-color: var(--amber); background: #faeeda; color: #854f0b; }
+.step-info { flex: 1; min-width: 0; }
+.step-info-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.nav-step.active .step-info-name { color: var(--green-dark); }
+.step-info-pct { font-size: 10px; color: var(--hint); margin-top: 1px; }
+.nav-step.done .step-info-pct { color: var(--green); }
+.sidebar-footer { margin-top: auto; padding: 14px 18px; border-top: 1px solid var(--border-soft); }
+.overall-prog { font-size: 11px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.prog-bar { height: 5px; background: var(--border); border-radius: 3px; }
+.prog-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width .4s; }
+.sidebar-links { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.sidebar-link { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); padding: 7px 10px; border-radius: 8px; cursor: pointer; transition: all .12s; border: 1px solid transparent; }
+.sidebar-link:hover { background: var(--green-light); color: var(--green-dark); border-color: var(--border); }
+.sidebar-link i { font-size: 16px; }
+
+/* ── Page header ── */
+.page-header { margin-bottom: 22px; }
+.page-icon-row { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.page-icon { width: 40px; height: 40px; background: var(--green-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.page-icon i { font-size: 22px; color: var(--green-dark); }
+.page-title { font-size: 18px; font-weight: 600; color: var(--text); }
+.page-sub { font-size: 13px; color: var(--muted); margin-left: 52px; }
+.validation-banner { background: #fff8ee; border: 1px solid #f0c060; border-radius: 9px; padding: 10px 14px; margin-bottom: 18px; font-size: 12px; color: #7a4e00; display: none; }
+.validation-banner.show { display: flex; align-items: flex-start; gap: 8px; }
+.validation-banner i { font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+.validation-banner ul { margin: 4px 0 0 4px; padding-left: 14px; }
+.validation-banner li { margin-bottom: 2px; }
+
+/* ── Panel ── */
+.panel { display: none; }
+.panel.active { display: block; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 22px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.card-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border-soft); }
+
+/* ── Form ── */
+.fg { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.full { grid-column: 1 / -1; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; display: flex; align-items: center; gap: 5px; }
+.req-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+.field input, .field select, .field textarea { font-family: 'Inter', sans-serif; font-size: 13px; padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); width: 100%; transition: border-color .15s, box-shadow .15s; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--green-mid); box-shadow: 0 0 0 3px rgba(29,158,117,.09); }
+.field input.invalid, .field select.invalid, .field textarea.invalid { border-color: var(--red); background: #fff8f8; }
+.field textarea { resize: vertical; min-height: 72px; }
+.mono { font-family: 'JetBrains Mono', monospace !important; font-size: 12px !important; }
+.gps-row { display: flex; gap: 7px; }
+.gps-row input { flex: 1; }
+.btn-gps { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; transition: all .12s; white-space: nowrap; }
+.btn-gps:hover { background: var(--green-light); color: var(--green-dark); border-color: var(--green-mid); }
+.field-hint { font-size: 11px; color: var(--hint); margin-top: 2px; }
+.field-error { font-size: 11px; color: var(--red); margin-top: 2px; display: none; }
+.field-error.show { display: block; }
+
+/* ── Toggles ── */
+.toggle-list { display: flex; flex-direction: column; gap: 0; }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--border-soft); }
+.toggle-row:last-child { border-bottom: none; }
+.toggle-label { font-size: 13px; font-weight: 500; color: var(--text); }
+.toggle-sub { font-size: 11px; color: var(--hint); margin-top: 2px; }
+.tog { width: 40px; height: 22px; background: var(--border); border-radius: 11px; cursor: pointer; position: relative; transition: background .2s; flex-shrink: 0; }
+.tog.on { background: var(--green); }
+.tog::after { content: ''; width: 17px; height: 17px; background: white; border-radius: 50%; position: absolute; top: 2.5px; left: 2.5px; transition: left .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.tog.on::after { left: 20.5px; }
+
+/* ── Loss table ── */
+.loss-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.loss-table th { background: #f8fbf9; padding: 8px 12px; text-align: left; font-weight: 600; color: var(--muted); border: 1px solid var(--border); }
+.loss-table td { padding: 6px 10px; border: 1px solid var(--border); vertical-align: middle; }
+.loss-table td input, .loss-table td select { border: none; background: transparent; width: 100%; font-size: 12px; color: var(--text); outline: none; font-family: 'JetBrains Mono', monospace; }
+.loss-table .total-row td { background: #f0f9f5; font-weight: 600; color: var(--green-dark); }
+.pass-badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+.pass-badge.pass { background: #e1f5ee; color: var(--green-dark); }
+.pass-badge.fail { background: #fcebeb; color: #7a1f1f; }
+
+/* ── Asset table ── */
+.asset-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.asset-table th { background: #f8fbf9; padding: 8px 10px; text-align: left; font-weight: 600; color: var(--muted); border: 1px solid var(--border); }
+.asset-table td { padding: 6px 8px; border: 1px solid var(--border); }
+.asset-table td input { border: none; background: transparent; width: 100%; font-size: 12px; color: var(--text); outline: none; }
+.asset-table td:nth-child(2) input { font-family: 'JetBrains Mono', monospace; text-align: center; }
+
+/* ── Upload zone ── */
+.upload-zone { border: 1.5px dashed var(--border); border-radius: 10px; padding: 22px; text-align: center; cursor: pointer; background: #f8fbf9; display: flex; flex-direction: column; align-items: center; gap: 7px; transition: all .15s; }
+.upload-zone:hover { border-color: var(--green); background: var(--green-light); }
+.upload-zone i { font-size: 28px; color: var(--green-mid); }
+.upload-zone:hover i { color: var(--green-dark); }
+.upload-zone span { font-size: 13px; color: var(--muted); font-weight: 500; }
+.upload-zone small { font-size: 11px; color: var(--hint); }
+
+/* ── Photo grid ── */
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.photo-slot { border: 1.5px dashed var(--border); border-radius: 10px; padding: 14px 10px; text-align: center; cursor: pointer; background: #f8fbf9; display: flex; flex-direction: column; align-items: center; gap: 5px; min-height: 95px; justify-content: center; transition: all .15s; position: relative; }
+.photo-slot:hover { border-color: var(--green); background: var(--green-light); }
+.photo-slot.captured { border-color: var(--green-mid); border-style: solid; background: #f0f9f5; }
+.photo-slot i { font-size: 22px; color: var(--green-mid); }
+.photo-slot.captured i { color: var(--green-dark); }
+.photo-slot span { font-size: 11px; color: var(--muted); line-height: 1.3; text-align: center; }
+.m-badge { font-size: 9px; padding: 2px 6px; border-radius: 20px; background: #faece7; color: #7a2a10; font-weight: 700; }
+.o-badge { font-size: 9px; padding: 2px 6px; border-radius: 20px; background: #f0f3f0; color: var(--muted); font-weight: 600; }
+.photo-slot.captured .m-badge { background: var(--green-light); color: var(--green-dark); }
+.photo-check { position: absolute; top: 6px; right: 6px; font-size: 14px; color: var(--green); display: none; }
+.photo-slot.captured .photo-check { display: block; }
+input[type="file"].photo-input { display: none; }
+
+/* ── Signature ── */
+.sig-wrap { border: 1px solid var(--border); border-radius: 10px; background: #f8fbf9; height: 110px; position: relative; overflow: hidden; cursor: crosshair; }
+.sig-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12px; color: var(--hint); pointer-events: none; white-space: nowrap; }
+.sig-clear { margin-top: 6px; padding: 5px 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); cursor: pointer; font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; transition: all .12s; }
+.sig-clear:hover { background: #fcebeb; color: var(--red); border-color: #f09595; }
+
+/* ── Output cards ── */
+.output-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.out-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 14px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; background: #f8fbf9; transition: all .15s; }
+.out-card:hover { background: var(--green-light); border-color: var(--green-mid); transform: translateY(-1px); }
+.out-card i { font-size: 26px; color: var(--green); }
+.out-card span { font-size: 12px; color: var(--text); font-weight: 500; line-height: 1.4; }
+.share-row { border: 1px solid var(--border); border-radius: 10px; padding: 16px; background: #f8fbf9; margin-top: 16px; }
+.share-row p { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.share-row p i { color: var(--green); font-size: 16px; }
+.share-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ── Buttons ── */
+.btn { padding: 9px 20px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: all .15s; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'Inter', sans-serif; }
+.btn:hover { background: #f0f4f2; }
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--green); color: white; border-color: var(--green); }
+.btn-primary:hover { background: var(--green-dark); border-color: var(--green-dark); }
+.btn-danger { background: #fcebeb; color: var(--red); border-color: #f7c1c1; }
+.btn-danger:hover { background: #f7c1c1; }
+.btn-sm { padding: 6px 13px; font-size: 11px; }
+
+/* ── Bottom nav ── */
+.bottom-nav { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 20px; box-shadow: var(--shadow); position: sticky; bottom: 20px; }
+.step-ctr { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+/* ── Toast ── */
+@keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 14px 0; }
+  .main { padding: 16px 14px 60px; }
+  .nav-step { padding: 7px 14px; }
+  .brand { padding: 0 14px 14px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ SIDEBAR ══════════════════════════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="brand-logo"><i class="ti ti-wifi"></i></div>
+    <h1>FTTH/FTTB Wizard</h1>
+    <p>Nigerian ISP Standard</p>
+  </div>
+  <div id="nav-steps"></div>
+  <div class="sidebar-footer">
+    <div class="overall-prog">
+      <span>Overall completion</span>
+      <span id="overall-pct">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="overall-fill" style="width:0%"></div></div>
+    <div class="sidebar-links">
+      <div class="sidebar-link" onclick="window.location.href='preview.html'"><i class="ti ti-eye"></i> Preview summary</div>
+      <div class="sidebar-link" onclick="window.location.href='pdf-report.html'"><i class="ti ti-file-type-pdf"></i> Generate PDF report</div>
+      <div class="sidebar-link btn-danger" style="border-color:transparent;" onclick="confirmClear()"><i class="ti ti-trash"></i> Clear all data</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══════════════════════════════════════════════════ -->
+<main class="main">
+  <div class="validation-banner" id="val-banner">
+    <i class="ti ti-alert-triangle"></i>
+    <div><strong>Required fields missing:</strong><ul id="val-list"></ul></div>
+  </div>
+
+  <!-- ─ STEP 0: CUSTOMER ─────────────────────────────────── -->
+  <div class="panel active" id="panel-0">
+    <div class="page-header">
+      <div class="page-icon-row"><div class="page-icon"><i class="ti ti-building"></i></div><div class="page-title">Customer Information</div></div>
+      <div class="page-sub">Identity, location, contact details, and building classification</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Customer identity</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>Customer full name</label><input type="text" data-field="customer_name" placeholder="e.g. Adebayo Okonkwo"></div>
+        <div class="field"><label><span class="req-dot"></span>Customer type</label><select data-field="customer_type"><option value="Residential">Residential</option><option value="SME">SME</option><option value="Enterprise">Enterprise</option><option value="Government">Government</option></select></div>
+        <div class="field full"><label><span class="req-dot"></span>Service address</label><textarea data-field="address" placeholder="Full installation address including LGA and state"></textarea></div>
+        <div class="field"><label><span class="req-dot"></span>Nearest landmark</label><input type="text" data-field="landmark" placeholder="e.g. Beside First Bank, Agege"></div>
+        <div class="field"><label><span class="req-dot"></span>Building type</label><select data-field="building_type"><option value="Duplex">Duplex</option><option value="Apartment">Apartment / Flat</option><option value="Estate">Estate</option><option value="Office complex">Office complex</option><option value="Mall">Mall</option><option value="School">School</option><option value="Other">Other</option></select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Contact details</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>Phone number</label><input type="tel" data-field="phone" placeholder="+234 xxx xxxx xxxx" class="mono"></div>
+        <div class="field"><label>Alternate contact</label><input type="tel" data-field="alt_phone" placeholder="+234 xxx xxxx xxxx" class="mono"></div>
+        <div class="field"><label>Email address</label><input type="email" data-field="email" placeholder="customer@example.com"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Installation record</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>Installation ticket number</label><input type="text" data-field="ticket_number" placeholder="TKT-2025-XXXXX" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>Installation date</label><input type="date" data-field="install_date"></div>
+        <div class="field"><label><span class="req-dot"></span>Technician name</label><input type="text" data-field="technician" placeholder="Engineer on site"></div>
+        <div class="field"><label>GPS coordinates</label>
+          <div class="gps-row">
+            <input type="text" data-field="gps_coords" placeholder="e.g. 6.524437, 3.379206" class="mono">
+            <button class="btn-gps" onclick="captureGPS('gps_coords')"><i class="ti ti-current-location"></i> Auto</button>
+          </div>
+          <span class="field-hint">Tap Auto to capture from device GPS</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─ STEP 1: SERVICE ──────────────────────────────────── -->
+  <div class="panel" id="panel-1">
+    <div class="page-header">
+      <div class="page-icon-row"><div class="page-icon"><i class="ti ti-world"></i></div><div class="page-title">Service Information</div></div>
+      <div class="page-sub">Package, status, IP assignment, and commercial terms</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Service details</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>Service plan / package</label><input type="text" data-field="service_plan" placeholder="e.g. Business Gold 100Mbps"></div>
+        <div class="field"><label><span class="req-dot"></span>Service status</label><select data-field="service_status"><option value="Active">Active</option><option value="Suspended">Suspended</option><option value="Pending">Pending activation</option></select></div>
+        <div class="field"><label><span class="req-dot"></span>CIR – Committed info rate</label><input type="text" data-field="cir" placeholder="e.g. 50 Mbps"></div>
+        <div class="field"><label>Burst rate</label><input type="text" data-field="burst_rate" placeholder="e.g. 100 Mbps"></div>
+        <div class="field"><label><span class="req-dot"></span>Contract duration</label><select data-field="contract_duration"><option value="Monthly">Monthly</option><option value="3 months">3 months</option><option value="6 months">6 months</option><option value="1 year">1 year</option><option value="2 years">2 years</option></select></div>
+        <div class="field"><label><span class="req-dot"></span>Monthly subscription (₦)</label><input type="number" data-field="monthly_fee" placeholder="e.g. 35000"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">IP & network assignment</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>VLAN ID</label><input type="number" data-field="vlan_id" placeholder="e.g. 100" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>IP address type</label><select data-field="ip_type"><option value="Dynamic (DHCP)">Dynamic (DHCP)</option><option value="Static IPv4">Static IPv4</option><option value="Static IPv6">Static IPv6</option></select></div>
+        <div class="field"><label>Assigned IP address</label><input type="text" data-field="ip_address" placeholder="e.g. 192.168.1.100" class="mono"></div>
+        <div class="field"><label>Subnet mask / prefix</label><input type="text" data-field="subnet" placeholder="e.g. 255.255.255.0 or /24" class="mono"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Enterprise routing (if applicable)</div>
+      <div class="fg">
+        <div class="field"><label>BGP ASN</label><input type="text" data-field="bgp_asn" placeholder="e.g. AS12345" class="mono"></div>
+        <div class="field"><label>Public subnet</label><input type="text" data-field="public_subnet" placeholder="e.g. 41.58.x.x/28" class="mono"></div>
+        <div class="field"><label>VRF name</label><input type="text" data-field="vrf_name" placeholder="e.g. CUST-0042" class="mono"></div>
+        <div class="field"><label>NAT type (residential)</label><select data-field="nat_type"><option value="">— N/A —</option><option value="Full cone">Full cone</option><option value="Port-restricted">Port-restricted</option><option value="Symmetric">Symmetric</option></select></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─ STEP 2: ODN ───────────────────────────────────────── -->
+  <div class="panel" id="panel-2">
+    <div class="page-header">
+      <div class="page-icon-row"><div class="page-icon"><i class="ti ti-timeline"></i></div><div class="page-title">ODN Information</div></div>
+      <div class="page-sub">Outside plant: OLT, splitter, cables, fiber core, and route map</div>
+    </div>
+    <div class="card">
+      <div class="card-title">OLT & PON</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>OLT name / location</label><input type="text" data-field="olt_name" placeholder="e.g. OLT-AGEGE-01" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>OLT IP address</label><input type="text" data-field="olt_ip" placeholder="e.g. 10.0.1.5" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>OLT port / card / slot</label><input type="text" data-field="olt_port" placeholder="e.g. Card 2 / Port 4" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>PON technology</label><select data-field="pon_tech"><option value="GPON">GPON</option><option value="XGS-PON">XGS-PON</option><option value="EPON">EPON</option><option value="10G-EPON">10G-EPON</option></select></div>
+        <div class="field"><label><span class="req-dot"></span>ONT serial number</label><input type="text" data-field="ont_serial_odn" placeholder="e.g. HWTC1234ABCD" class="mono"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Splitter & fiber core</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>Splitter ratio</label><select data-field="splitter_ratio"><option value="1:2">1:2</option><option value="1:4">1:4</option><option value="1:8">1:8</option><option value="1:16">1:16</option><option value="1:32">1:32</option><option value="1:64">1:64</option></select></div>
+        <div class="field"><label><span class="req-dot"></span>Splitter location / FAT label</label><input type="text" data-field="splitter_location" placeholder="e.g. FAT-AGEGE-C12" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>FAT ID</label><input type="text" data-field="fat_id" placeholder="e.g. FAT-003" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>Fiber core number used</label><input type="number" data-field="fiber_core_num" placeholder="e.g. 6" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>Fiber core status</label><select data-field="fiber_core_status"><option value="Active">Active</option><option value="Spare">Spare</option><option value="Reserved">Reserved</option></select></div>
+        <div class="field"><label>Feeder cable type</label><input type="text" data-field="feeder_cable" placeholder="e.g. 48-core OS2 ADSS"></div>
+        <div class="field"><label>Distribution cable type</label><input type="text" data-field="dist_cable" placeholder="e.g. 12-core OS2 aerial"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Route map upload</div>
+      <div class="upload-zone" onclick="document.getElementById('route-map-input').click()">
+        <i class="ti ti-map-2"></i>
+        <span>Click to upload route map</span>
+        <small>PDF · KMZ · KML · PNG · JPG — max 10 MB</small>
+      </div>
+      <input type="file" id="route-map-input" accept=".pdf,.kmz,.kml,.png,.jpg,.jpeg" style="display:none" onchange="handleFileUpload(this,'route_map')">
+      <div id="route-map-name" style="font-size:12px;color:var(--green-dark);margin-top:8px;display:none;"></div>
+    </div>
+  </div>
+
+  <!-- ─ STEP 3: OPTICAL ──────────────────────────────────── -->
+  <div class="panel" id="panel-3">
+    <div class="page-header">
+      <div class="page-icon-row"><div class="page-icon"><i class="ti ti-antenna"></i></div><div class="page-title">Optical Measurements</div></div>
+      <div class="page-sub">Pre/post power levels and loss per segment — critical for future fault diagnosis</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Pre-installation readings</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>OLT Tx power (dBm)</label><input type="number" step="0.01" data-field="olt_tx_power" placeholder="e.g. +2.50" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>OLT port power before activation</label><input type="number" step="0.01" data-field="olt_pre_power" placeholder="e.g. -22.00" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>ONT Rx power before activation</label><input type="number" step="0.01" data-field="ont_rx_pre" placeholder="e.g. -24.50" class="mono"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Post-installation readings</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>OLT port power after activation</label><input type="number" step="0.01" data-field="olt_post_power" placeholder="e.g. -21.80" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>ONT Rx power after activation</label><input type="number" step="0.01" data-field="ont_rx_post" placeholder="e.g. -23.90" class="mono" oninput="calcOptical()"></div>
+        <div class="field"><label>OTDR trace available?</label><select data-field="otdr_available"><option value="Yes">Yes — uploaded</option><option value="No">No</option></select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Optical loss per segment</div>
+      <table class="loss-table">
+        <thead><tr><th>Segment</th><th>Loss (dB)</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>OLT → Feeder splitter</td>
+            <td><input type="number" step="0.01" data-field="loss_olt_splitter" placeholder="e.g. 10.00" oninput="calcOptical()"></td>
+            <td><select data-field="pass_olt_splitter"><option value="Pass">Pass</option><option value="Fail">Fail</option></select></td>
+          </tr>
+          <tr>
+            <td>Feeder splitter → FAT</td>
+            <td><input type="number" step="0.01" data-field="loss_splitter_fat" placeholder="e.g. 4.00" oninput="calcOptical()"></td>
+            <td><select data-field="pass_splitter_fat"><option value="Pass">Pass</option><option value="Fail">Fail</option></select></td>
+          </tr>
+          <tr>
+            <td>FAT → ONT</td>
+            <td><input type="number" step="0.01" data-field="loss_fat_ont" placeholder="e.g. 2.00" oninput="calcOptical()"></td>
+            <td><select data-field="pass_fat_ont"><option value="Pass">Pass</option><option value="Fail">Fail</option></select></td>
+          </tr>
+          <tr class="total-row">
+            <td><strong>Total end-to-end</strong></td>
+            <td><input type="number" step="0.01" data-field="loss_total" placeholder="Auto-calculated" readonly style="color:var(--green-dark);font-weight:600;"></td>
+            <td><input type="text" data-field="pass_total" value="—" readonly style="color:var(--muted);"></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="fg" style="margin-top:14px;">
+        <div class="field"><label>Optical budget (dB)</label><input type="number" step="0.01" data-field="optical_budget" placeholder="e.g. 28.00" class="mono"></div>
+        <div class="field"><label>Power margin (dB)</label><input type="number" step="0.01" data-field="power_margin" placeholder="Auto-calculated" class="mono" readonly></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─ STEP 4: ONT ──────────────────────────────────────── -->
+  <div class="panel" id="panel-4">
+    <div class="page-header">
+      <div class="page-icon-row"><div class="page-icon"><i class="ti ti-router"></i></div><div class="page-title">ONT / Router Information</div></div>
+      <div class="page-sub">Device specs, ownership, WiFi configuration, and management access</div>
+    </div>
+    <div class="card">
+      <div class="card-title">ONT device</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>ONT make / model</label><input type="text" data-field="ont_model" placeholder="e.g. Huawei EG8145V5"></div>
+        <div class="field"><label><span class="req-dot"></span>ONT serial number</label><input type="text" data-field="ont_serial" placeholder="e.g. HWTC1234ABCD" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>ONT asset tag / ID</label><input type="text" data-field="ont_asset" placeholder="e.g. ISP-ONT-00421" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>Device ownership</label><select data-field="device_ownership"><option value="ISP-owned">ISP-owned</option><option value="Customer-owned">Customer-owned</option></select></div>
+        <div class="field"><label>ONT firmware version</label><input type="text" data-field="ont_firmware" placeholder="e.g. V3.21.23.0135" class="mono"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Router & WiFi</div>
+      <div class="fg">
+        <div class="field"><label>Router make / model</label><input type="text" data-field="router_model" placeholder="e.g. MikroTik hAP ac³"></div>
+        <div class="field"><label>Router asset ID</label><input type="text" data-field="router_asset" placeholder="e.g. ISP-RTR-00189" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>WiFi band</label><select data-field="wifi_band"><option value="Dual band (2.4 + 5 GHz)">Dual band (2.4 + 5 GHz)</option><option value="2.4 GHz only">2.4 GHz only</option><option value="5 GHz only">5 GHz only</option><option value="WiFi 6 (6 GHz)">WiFi 6 (6 GHz)</option><option value="No WiFi – wired only">No WiFi – wired only</option></select></div>
+        <div class="field"><label>WiFi SSID</label><input type="text" data-field="wifi_ssid" placeholder="e.g. CustomerNet_5G"></div>
+        <div class="field"><label>LAN ports in use</label><input type="number" data-field="lan_ports_used" min="0" max="8" placeholder="e.g. 2"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">UPS & management</div>
+      <div class="fg">
+        <div class="field"><label>UPS make / model</label><input type="text" data-field="ups_model" placeholder="e.g. Mercury 650VA"></div>
+        <div class="field"><label>UPS asset ID</label><input type="text" data-field="ups_asset" placeholder="e.g. ISP-UPS-00045" class="mono"></div>
+        <div class="field"><label>ONT management IP</label><input type="text" data-field="mgmt_ip" placeholder="e.g. 192.168.100.1" class="mono"></div>
+        <div class="field"><label>TR-069 / CWMP enabled?</label><select data-field="tr069"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─ STEP 5: PHYSICAL ─────────────────────────────────── -->
+  <div class="panel" id="panel-5">
+    <div class="page-header">
+      <div class="page-icon-row"><div class="page-icon"><i class="ti ti-tool"></i></div><div class="page-title">Physical Installation</div></div>
+      <div class="page-sub">Pole, drop cable, protection, earthing, and equipment checklist</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Pole & aerial</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>Pole ID / label</label><input type="text" data-field="pole_id" placeholder="e.g. POLE-AGEGE-142" class="mono"></div>
+        <div class="field"><label>Pole GPS coordinates</label>
+          <div class="gps-row">
+            <input type="text" data-field="pole_gps" placeholder="e.g. 6.5921, 3.3381" class="mono">
+            <button class="btn-gps" onclick="captureGPS('pole_gps')"><i class="ti ti-current-location"></i> Auto</button>
+          </div>
+        </div>
+        <div class="field"><label><span class="req-dot"></span>Pole condition</label><select data-field="pole_condition"><option value="Good">Good</option><option value="Fair">Fair – monitor</option><option value="Poor">Poor – replacement needed</option></select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Drop cable</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>Drop cable type</label><input type="text" data-field="drop_cable_type" placeholder="e.g. G.657A2 2-core FTTH indoor"></div>
+        <div class="field"><label><span class="req-dot"></span>Drop cable length (m)</label><input type="number" data-field="drop_cable_length" placeholder="e.g. 45" class="mono"></div>
+        <div class="field full"><label><span class="req-dot"></span>Drop cable route description</label><textarea data-field="drop_cable_route" placeholder="Describe the routing path from pole to building entry point, including any ducts or conduits used..."></textarea></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Protection & earthing</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>Fiber protection method</label><select data-field="fiber_protection"><option value="Spiral wrap">Spiral wrap</option><option value="Conduit">Conduit</option><option value="Trunking">Trunking</option><option value="Combination">Combination</option><option value="None">None</option></select></div>
+        <div class="field"><label><span class="req-dot"></span>Earthing / grounding status</label><select data-field="earthing_status"><option value="Properly earthed">Properly earthed</option><option value="Not earthed">Not earthed – action needed</option><option value="Not applicable">Not applicable</option></select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Equipment checklist</div>
+      <div class="toggle-list">
+        <div class="toggle-row">
+          <div><div class="toggle-label">UPS installed</div><div class="toggle-sub">Uninterruptible power supply on site</div></div>
+          <div class="tog" id="tog-ups" onclick="toggleField(this,'ups_installed')"></div>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Surge protector installed</div><div class="toggle-sub">On power inlet to ONT / router</div></div>
+          <div class="tog" id="tog-surge" onclick="toggleField(this,'surge_installed')"></div>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Outdoor enclosure / weather box</div><div class="toggle-sub">For exposed aerial installations</div></div>
+          <div class="tog" id="tog-enc" onclick="toggleField(this,'enclosure_installed')"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─ STEP 6: TESTING ──────────────────────────────────── -->
+  <div class="panel" id="panel-6">
+    <div class="page-header">
+      <div class="page-icon-row"><div class="page-icon"><i class="ti ti-flask"></i></div><div class="page-title">Testing & Verification</div></div>
+      <div class="page-sub">Speed test, signal quality, VoIP, and fault recovery reference</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Speed test results</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>Speed test server used</label><input type="text" data-field="speed_server" placeholder="e.g. Speedtest.net – Lagos node"></div>
+        <div class="field"><label><span class="req-dot"></span>Test timestamp</label><input type="datetime-local" data-field="test_timestamp"></div>
+        <div class="field"><label><span class="req-dot"></span>Download speed (Mbps)</label><input type="number" step="0.1" data-field="download_speed" placeholder="e.g. 98.4" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>Upload speed (Mbps)</label><input type="number" step="0.1" data-field="upload_speed" placeholder="e.g. 97.1" class="mono"></div>
+        <div class="field"><label><span class="req-dot"></span>Ping / latency (ms)</label><input type="number" step="0.1" data-field="ping_ms" placeholder="e.g. 12" class="mono"></div>
+        <div class="field"><label>Jitter (ms)</label><input type="number" step="0.1" data-field="jitter_ms" placeholder="e.g. 1.5" class="mono"></div>
+        <div class="field"><label>Packet loss (%)</label><input type="number" step="0.01" data-field="packet_loss" placeholder="e.g. 0.00" class="mono"></div>
+        <div class="field"><label>MOS score – VoIP (1–5)</label><input type="number" step="0.1" min="1" max="5" data-field="mos_score" placeholder="e.g. 4.3" class="mono"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Fault recovery reference</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>Nearest FAT for fault recovery</label><input type="text" data-field="nearest_fat" placeholder="e.g. FAT-AGEGE-C12" class="mono"></div>
+        <div class="field"><label>Nearest handhole</label><input type="text" data-field="nearest_handhole" placeholder="e.g. HH-AGEGE-007" class="mono"></div>
+        <div class="field"><label>Alternate fiber core available?</label><select data-field="alt_core"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+        <div class="field"><label>Spare OLT port available?</label><select data-field="spare_olt_port"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+        <div class="field"><label><span class="req-dot"></span>Escalation engineer (L2)</label><input type="text" data-field="escalation_engineer" placeholder="Name and contact for second-line support"></div>
+        <div class="field full"><label>Test notes / observations</label><textarea data-field="test_notes" placeholder="Any issues observed during testing, unusual readings, or workarounds applied..."></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─ STEP 7: PHOTOS ───────────────────────────────────── -->
+  <div class="panel" id="panel-7">
+    <div class="page-header">
+      <div class="page-icon-row"><div class="page-icon"><i class="ti ti-camera"></i></div><div class="page-title">Photo Documentation</div></div>
+      <div class="page-sub">Tap each slot to capture or upload. Mandatory photos must be present before generating the report.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Mandatory photos <span style="font-size:10px;background:#faece7;color:#7a2a10;padding:2px 8px;border-radius:20px;font-weight:700;margin-left:6px;">8 required</span></div>
+      <div class="photo-grid" id="mandatory-photos"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Optional photos <span class="o-badge" style="margin-left:6px;">Optional</span></div>
+      <div class="photo-grid" id="optional-photos"></div>
+    </div>
+    <p style="font-size:11px;color:var(--hint);margin-top:8px;">Photos are compressed before upload. Max 5 MB per image. Supported: JPG, PNG, HEIC.</p>
+  </div>
+
+  <!-- ─ STEP 8: ASSETS ───────────────────────────────────── -->
+  <div class="panel" id="panel-8">
+    <div class="page-header">
+      <div class="page-icon-row"><div class="page-icon"><i class="ti ti-package"></i></div><div class="page-title">Asset Tracking</div></div>
+      <div class="page-sub">Materials consumed and device inventory IDs for audit trail and inventory management</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Materials used on site</div>
+      <table class="asset-table">
+        <thead><tr><th>Item</th><th>Qty used</th><th>Unit</th><th>Inventory ID</th></tr></thead>
+        <tbody>
+          <tr><td>Drop cable</td><td><input type="number" data-field="qty_drop_cable" placeholder="0"></td><td>metres</td><td><input type="text" data-field="inv_drop_cable" placeholder="INV-XXX"></td></tr>
+          <tr><td>Patch cord</td><td><input type="number" data-field="qty_patch_cord" placeholder="0"></td><td>pcs</td><td><input type="text" data-field="inv_patch_cord" placeholder="INV-XXX"></td></tr>
+          <tr><td>Fast connector (SC/APC)</td><td><input type="number" data-field="qty_fast_conn" placeholder="0"></td><td>pcs</td><td><input type="text" data-field="inv_fast_conn" placeholder="INV-XXX"></td></tr>
+          <tr><td>Splitter (if installed)</td><td><input type="number" data-field="qty_splitter" placeholder="0"></td><td>pcs</td><td><input type="text" data-field="inv_splitter" placeholder="INV-XXX"></td></tr>
+          <tr><td>Cable ties</td><td><input type="number" data-field="qty_cable_ties" placeholder="0"></td><td>pcs</td><td><input type="text" data-field="inv_cable_ties" placeholder="INV-XXX"></td></tr>
+          <tr><td>Cable clamps</td><td><input type="number" data-field="qty_clamps" placeholder="0"></td><td>pcs</td><td><input type="text" data-field="inv_clamps" placeholder="INV-XXX"></td></tr>
+          <tr><td>Conduit</td><td><input type="number" data-field="qty_conduit" placeholder="0"></td><td>metres</td><td><input type="text" data-field="inv_conduit" placeholder="INV-XXX"></td></tr>
+          <tr><td>Wall plug / rawbolt</td><td><input type="number" data-field="qty_rawbolt" placeholder="0"></td><td>pcs</td><td><input type="text" data-field="inv_rawbolt" placeholder="INV-XXX"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">Device inventory IDs</div>
+      <div class="fg">
+        <div class="field"><label>ONT asset ID</label><input type="text" data-field="ont_asset_track" placeholder="e.g. ISP-ONT-00421" class="mono"></div>
+        <div class="field"><label>Router asset ID</label><input type="text" data-field="router_asset_track" placeholder="e.g. ISP-RTR-00189" class="mono"></div>
+        <div class="field"><label>UPS asset ID</label><input type="text" data-field="ups_asset_track" placeholder="e.g. ISP-UPS-00045" class="mono"></div>
+        <div class="field full"><label>Additional notes</label><textarea data-field="asset_notes" placeholder="Any other materials used or items to flag for inventory..."></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─ STEP 9: ACCEPTANCE ───────────────────────────────── -->
+  <div class="panel" id="panel-9">
+    <div class="page-header">
+      <div class="page-icon-row"><div class="page-icon"><i class="ti ti-pencil"></i></div><div class="page-title">Customer Acceptance</div></div>
+      <div class="page-sub">Handover sign-off, customer comments, and engineer certification</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Handover details</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>Customer full name</label><input type="text" data-field="accept_customer_name" placeholder="As on ID document"></div>
+        <div class="field"><label>Customer designation / role</label><input type="text" data-field="accept_designation" placeholder="e.g. CEO, IT Manager, Homeowner"></div>
+        <div class="field"><label><span class="req-dot"></span>Acceptance date & time</label><input type="datetime-local" data-field="accept_datetime"></div>
+        <div class="field full"><label>Customer comments / remarks</label><textarea data-field="customer_comments" placeholder="Any comments from the customer at handover..."></textarea></div>
+        <div class="field full"><label><span class="req-dot"></span>Handover notes (engineer)</label><textarea data-field="handover_notes" placeholder="Summary of work completed, items handed over, and any pending actions..."></textarea></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Customer signature</div>
+      <div class="sig-wrap" id="sig-cust"><canvas id="sc-cust"></canvas><span class="sig-placeholder" id="sp-cust">Customer draws signature here</span></div>
+      <button class="sig-clear" onclick="clearSig('cust')"><i class="ti ti-eraser"></i> Clear signature</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Engineer certification</div>
+      <div class="fg">
+        <div class="field"><label><span class="req-dot"></span>Engineer name</label><input type="text" data-field="engineer_name" placeholder="Full name"></div>
+        <div class="field"><label><span class="req-dot"></span>Engineer ID / badge number</label><input type="text" data-field="engineer_id" placeholder="e.g. ENG-00034" class="mono"></div>
+      </div>
+      <div style="margin-top:14px;">
+        <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;">Engineer signature</label>
+        <div style="margin-top:6px;" class="sig-wrap" id="sig-eng"><canvas id="sc-eng"></canvas><span class="sig-placeholder" id="sp-eng">Engineer draws signature here</span></div>
+        <button class="sig-clear" onclick="clearSig('eng')"><i class="ti ti-eraser"></i> Clear signature</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─ STEP 10: GENERATE ─────────────────────────────────── -->
+  <div class="panel" id="panel-10">
+    <div class="page-header">
+      <div class="page-icon-row"><div class="page-icon"><i class="ti ti-file-text"></i></div><div class="page-title">Generate Documentation</div></div>
+      <div class="page-sub">Export your completed installation record in all required formats</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Output documents</div>
+      <div class="output-grid">
+        <div class="out-card" onclick="window.location.href='pdf-report.html?type=full'"><i class="ti ti-file-type-pdf"></i><span>PDF installation report</span></div>
+        <div class="out-card" onclick="window.location.href='pdf-report.html?type=handover'"><i class="ti ti-certificate"></i><span>Customer handover certificate</span></div>
+        <div class="out-card" onclick="window.location.href='pdf-report.html?type=isp'"><i class="ti ti-database"></i><span>Internal ISP record</span></div>
+        <div class="out-card" onclick="window.location.href='pdf-report.html?type=maintenance'"><i class="ti ti-tool"></i><span>Maintenance reference card</span></div>
+        <div class="out-card" onclick="window.location.href='preview.html'"><i class="ti ti-eye"></i><span>Preview all data</span></div>
+      </div>
+    </div>
+    <div class="share-row">
+      <p><i class="ti ti-share"></i> Share & distribute</p>
+      <div class="share-btns">
+        <button class="btn btn-sm" onclick="shareWhatsApp()"><i class="ti ti-brand-whatsapp"></i> WhatsApp summary</button>
+        <button class="btn btn-sm" onclick="copyLink()"><i class="ti ti-link"></i> Copy link</button>
+        <button class="btn btn-sm" onclick="window.print()"><i class="ti ti-printer"></i> Print</button>
+        <button class="btn btn-sm btn-danger" onclick="confirmClear()"><i class="ti ti-trash"></i> Clear & restart</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BOTTOM NAV ── -->
+  <div class="bottom-nav">
+    <button class="btn" id="btn-prev" onclick="navigate(-1)" style="visibility:hidden"><i class="ti ti-arrow-left"></i> Previous</button>
+    <span class="step-ctr" id="step-ctr">Step 1 of 11</span>
+    <button class="btn btn-primary" id="btn-next" onclick="navigate(1)">Next <i class="ti ti-arrow-right"></i></button>
+  </div>
+
+</main>
+</div>
+
+<script src="wizard-core.js"></script>
+<script>
+/* ── Boot ─────────────────────────────────────────────────── */
+WizardState.load();
+let cur = 0;
+const TOTAL = 11;
+
+/* ── Photo slots config ──────────────────────────────────── */
+const MANDATORY_PHOTOS = [
+  { key: 'photo_building', icon: 'ti-building', label: 'Customer building front' },
+  { key: 'photo_street', icon: 'ti-road', label: 'Street / approach view' },
+  { key: 'photo_pole', icon: 'ti-antenna-bars-5', label: 'Pole view' },
+  { key: 'photo_fat', icon: 'ti-box', label: 'FAT open view' },
+  { key: 'photo_route', icon: 'ti-line-dashed', label: 'Drop cable route' },
+  { key: 'photo_ont', icon: 'ti-router', label: 'ONT installation' },
+  { key: 'photo_signal', icon: 'ti-chart-line', label: 'Signal reading' },
+  { key: 'photo_speedtest', icon: 'ti-speedboat', label: 'Speed test result' },
+];
+const OPTIONAL_PHOTOS = [
+  { key: 'photo_rack', icon: 'ti-server', label: 'Customer equipment rack' },
+  { key: 'photo_router_cfg', icon: 'ti-screenshot', label: 'Router config screenshot' },
+];
+
+function buildPhotoSlots(photos, containerId, badge) {
+  const container = document.getElementById(containerId);
+  photos.forEach(p => {
+    const captured = WizardState.get(p.key + '_name') || false;
+    const slot = document.createElement('div');
+    slot.className = 'photo-slot' + (captured ? ' captured' : '');
+    slot.id = 'slot-' + p.key;
+    slot.innerHTML = `
+      <i class="ti ${p.icon}"></i>
+      <span>${p.label}</span>
+      <span class="${badge === 'mandatory' ? 'm-badge' : 'o-badge'}">${badge === 'mandatory' ? 'Mandatory' : 'Optional'}</span>
+      <i class="ti ti-check photo-check"></i>
+      <input type="file" class="photo-input" id="input-${p.key}" accept="image/*,video/*" capture="environment">
+    `;
+    slot.addEventListener('click', () => document.getElementById('input-' + p.key).click());
+    container.appendChild(slot);
+    document.getElementById('input-' + p.key).addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        WizardState.set(p.key + '_name', this.files[0].name);
+        const slotEl = document.getElementById('slot-' + p.key);
+        slotEl.classList.add('captured');
+        showToast(`✓ ${p.label} captured`, 'success');
+        updateProgress();
+      }
+    });
+  });
+}
+
+/* ── Navigation ─────────────────────────────────────────── */
+function navigate(dir) {
+  if (dir > 0) {
+    const missing = WizardState.getMissingFields(cur);
+    if (missing.length > 0) {
+      showValidation(missing);
+      return;
+    }
+    hideValidation();
+  }
+  syncFormToState();
+  showPanel(Math.min(Math.max(cur + dir, 0), TOTAL - 1));
+}
+
+function showPanel(i) {
+  document.getElementById('panel-' + cur).classList.remove('active');
+  document.querySelectorAll('.nav-step').forEach(n => n.classList.remove('active'));
+  cur = i;
+  document.getElementById('panel-' + cur).classList.add('active');
+  document.querySelectorAll('.nav-step')[cur].classList.add('active');
+  updateProgress();
+  populateFormFromState();
+  restoreToggles();
+  if (cur === 9) setTimeout(() => { initSig('cust'); initSig('eng'); }, 80);
+  document.getElementById('btn-prev').style.visibility = cur === 0 ? 'hidden' : 'visible';
+  document.getElementById('btn-next').style.display = cur === TOTAL - 1 ? 'none' : 'inline-flex';
+  document.getElementById('step-ctr').textContent = `Step ${cur + 1} of ${TOTAL}`;
+  hideValidation();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ── Sidebar nav ─────────────────────────────────────────── */
+function buildNav() {
+  const container = document.getElementById('nav-steps');
+  STEP_META.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'nav-step' + (i === 0 ? ' active' : '');
+    div.dataset.step = i;
+    div.innerHTML = `<div class="step-num">${i + 1}</div><div class="step-info"><div class="step-info-name">${s.name}</div><div class="step-info-pct" id="pct-${i}"></div></div>`;
+    div.addEventListener('click', () => { syncFormToState(); showPanel(i); });
+    container.appendChild(div);
+  });
+}
+
+function updateProgress() {
+  document.querySelectorAll('.nav-step').forEach((el, i) => {
+    const pct = WizardState.getStepCompletion(i);
+    const pctEl = document.getElementById('pct-' + i);
+    el.classList.remove('done', 'partial');
+    if (pct >= 1) { el.classList.add('done'); el.querySelector('.step-num').textContent = '✓'; if (pctEl) pctEl.textContent = 'Complete'; }
+    else if (pct > 0) { el.classList.add('partial'); el.querySelector('.step-num').textContent = i + 1; if (pctEl) pctEl.textContent = Math.round(pct * 100) + '% done'; }
+    else { el.querySelector('.step-num').textContent = i + 1; if (pctEl) pctEl.textContent = ''; }
+  });
+  const overall = WizardState.getOverallCompletion();
+  document.getElementById('overall-pct').textContent = overall + '%';
+  document.getElementById('overall-fill').style.width = overall + '%';
+}
+
+/* ── Toggle handlers ────────────────────────────────────── */
+const TOGGLES = { 'tog-ups': 'ups_installed', 'tog-surge': 'surge_installed', 'tog-enc': 'enclosure_installed' };
+function toggleField(el, key) {
+  el.classList.toggle('on');
+  WizardState.set(key, el.classList.contains('on'));
+}
+function restoreToggles() {
+  Object.entries(TOGGLES).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) { const v = WizardState.get(key); el.classList.toggle('on', v === true || v === 'true'); }
+  });
+}
+
+/* ── Signature ──────────────────────────────────────────── */
+const sigData = {};
+function initSig(who) {
+  const wrap = document.getElementById('sig-' + who);
+  const canvas = document.getElementById('sc-' + who);
+  if (!wrap || !canvas) return;
+  canvas.width = wrap.offsetWidth || 560;
+  canvas.height = 110;
+  const ctx = canvas.getContext('2d');
+  if (sigData[who]) { const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0); img.src = sigData[who]; }
+  ctx.strokeStyle = '#0f6e56'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  let drawing = false, lx = 0, ly = 0;
+  canvas.addEventListener('mousedown', e => { drawing = true; [lx, ly] = [e.offsetX, e.offsetY]; document.getElementById('sp-' + who).style.opacity = '0'; });
+  canvas.addEventListener('mousemove', e => { if (!drawing) return; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); [lx, ly] = [e.offsetX, e.offsetY]; });
+  canvas.addEventListener('mouseup', () => { drawing = false; saveSig(who); });
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const t = e.touches[0]; const r = canvas.getBoundingClientRect(); [lx, ly] = [t.clientX - r.left, t.clientY - r.top]; document.getElementById('sp-' + who).style.opacity = '0'; }, { passive: false });
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing) return; const t = e.touches[0]; const r = canvas.getBoundingClientRect(); const x = t.clientX - r.left, y = t.clientY - r.top; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(x, y); ctx.stroke(); [lx, ly] = [x, y]; }, { passive: false });
+  canvas.addEventListener('touchend', () => { drawing = false; saveSig(who); });
+}
+function saveSig(who) {
+  const c = document.getElementById('sc-' + who);
+  if (c) { sigData[who] = c.toDataURL(); WizardState.set('sig_' + who, sigData[who]); }
+}
+function clearSig(who) {
+  const c = document.getElementById('sc-' + who);
+  if (c) { c.getContext('2d').clearRect(0, 0, c.width, c.height); sigData[who] = null; WizardState.set('sig_' + who, ''); }
+  const sp = document.getElementById('sp-' + who);
+  if (sp) sp.style.opacity = '1';
+}
+
+/* ── Validation banner ──────────────────────────────────── */
+function showValidation(fields) {
+  const banner = document.getElementById('val-banner');
+  const list = document.getElementById('val-list');
+  list.innerHTML = fields.map(f => `<li>${f}</li>`).join('');
+  banner.classList.add('show');
+  banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function hideValidation() { document.getElementById('val-banner').classList.remove('show'); }
+
+/* ── File upload ──────────────────────────────────────────── */
+function handleFileUpload(input, key) {
+  if (input.files && input.files[0]) {
+    const name = input.files[0].name;
+    WizardState.set(key + '_name', name);
+    const el = document.getElementById(key + '-name');
+    if (el) { el.style.display = 'block'; el.innerHTML = `<i class="ti ti-file-check" style="color:var(--green);vertical-align:-2px;"></i> ${name}`; }
+    showToast('File uploaded: ' + name, 'success');
+  }
+}
+
+/* ── Share functions ──────────────────────────────────────── */
+function shareWhatsApp() {
+  const d = WizardState.getAll();
+  const msg = `*FTTH Installation Record*\n\n` +
+    `*Customer:* ${d.customer_name || '—'}\n` +
+    `*Address:* ${d.address || '—'}\n` +
+    `*Ticket:* ${d.ticket_number || '—'}\n` +
+    `*Plan:* ${d.service_plan || '—'} (${d.cir || '—'})\n` +
+    `*ONT:* ${d.ont_model || '—'} · SN: ${d.ont_serial || '—'}\n` +
+    `*Speed:* ↓${d.download_speed || '—'} Mbps ↑${d.upload_speed || '—'} Mbps\n` +
+    `*Signal:* ${d.ont_rx_post || '—'} dBm\n` +
+    `*Technician:* ${d.technician || '—'}\n` +
+    `*Date:* ${d.install_date || '—'}\n\n` +
+    `_Generated by FTTH/FTTB Wizard – Nigerian ISP Standard_`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => showToast('Link copied to clipboard', 'success'));
+}
+function confirmClear() {
+  if (confirm('Clear all form data? This cannot be undone.')) { WizardState.clear(); location.reload(); }
+}
+
+/* ── Init ────────────────────────────────────────────────── */
+buildNav();
+buildPhotoSlots(MANDATORY_PHOTOS, 'mandatory-photos', 'mandatory');
+buildPhotoSlots(OPTIONAL_PHOTOS, 'optional-photos', 'optional');
+populateFormFromState();
+restoreToggles();
+attachAutoSave();
+updateProgress();
+
+// Restore route map name
+const rmName = WizardState.get('route_map_name');
+if (rmName) { const el = document.getElementById('route-map-name'); if (el) { el.style.display = 'block'; el.innerHTML = `<i class="ti ti-file-check" style="color:var(--green);vertical-align:-2px;"></i> ${rmName}`; } }
+</script>
+</body>
+</html>
