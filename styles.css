@@ -51,7 +51,7 @@ a {
   flex-direction: column;
   position: sticky;
   top: 0;
-  height: 100vh;
+  height: 100dvh;
 }
 
 #nav-steps {
@@ -1008,7 +1008,7 @@ input[type="file"].photo-input {
     top: 0;
     left: -280px;
     width: 280px;
-    height: 100vh;
+    height: 100dvh;
     z-index: 1001;
     border-right: 1px solid var(--border);
     padding: 16px 0;
